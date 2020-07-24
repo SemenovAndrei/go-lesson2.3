@@ -1,6 +1,9 @@
 package card
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 type Card struct {
 	Id           int64
@@ -12,10 +15,10 @@ type Card struct {
 }
 
 type Transaction struct {
-	Id string
+	Id     string
 	Amount int64
-	Date int64
-	Mcc string
+	Date   int64
+	Mcc    string
 	Status string
 }
 
@@ -40,4 +43,19 @@ func SortTransaction(transaction []*Transaction) []*Transaction {
 		return transaction[i].Amount > transaction[j].Amount
 	})
 	return transaction
+}
+
+//task 2
+type TransactionTest struct {
+	Id     string
+	Amount int64
+	Date   time.Time
+}
+
+func Sum(transactions []*TransactionTest) int64 {
+	total := int64(0)
+	for _, transaction := range transactions {
+		total += transaction.Amount
+	}
+	return total
 }
