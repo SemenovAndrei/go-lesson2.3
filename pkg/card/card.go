@@ -1,7 +1,9 @@
 package card
 
 import (
+	"fmt"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -26,17 +28,17 @@ func AddTransaction(card *Card, transaction *Transaction) {
 	card.Transactions = append(card.Transactions, transaction)
 }
 
-func SumByMCC(transactions []*Transaction, mcc []string) int64 {
-	total := int64(0)
-	for _, transaction := range transactions {
-		for _, example := range mcc {
-			if example == transaction.Mcc {
-				total += transaction.Amount
-			}
-		}
-	}
-	return total
-}
+//func SumByMCC(transactions []*Transaction, mcc []string) int64 {
+//	total := int64(0)
+//	for _, transaction := range transactions {
+//		for _, example := range mcc {
+//			if example == transaction.Mcc {
+//				total += transaction.Amount
+//			}
+//		}
+//	}
+//	return total
+//}
 
 func SortTransaction(transaction []*Transaction) []*Transaction {
 	sort.SliceStable(transaction, func(i, j int) bool {
@@ -57,5 +59,26 @@ func Sum(transactions []*TransactionTest) int64 {
 	for _, transaction := range transactions {
 		total += transaction.Amount
 	}
+	return total
+}
+
+func SumConcurrently(transactions [][]*TransactionTest, goroutines int) int64 {
+	if goroutines > len(transactions) {
+		goroutines = len(transactions)
+	}
+	wg := sync.WaitGroup{}
+	wg.Add(goroutines)
+
+	total := int64(0)
+		for i := 0; i < goroutines; i++ {
+			part := transactions[i]
+			go func() {
+				sum := Sum(part)
+				fmt.Println(sum)
+				wg.Done()
+			}()
+		}
+
+	wg.Wait()
 	return total
 }

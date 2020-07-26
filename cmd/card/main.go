@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/i-hit/go-lesson2.3.git/pkg/card"
@@ -74,21 +73,18 @@ func main() {
 		transactionByMonth[transaction[i].Date.Month()] = append(transactionByMonth[transaction[i].Date.Month()], transaction[i])
 	}
 
+	transactionSliceByMonth := make([][]*card.TransactionTest, 12, 12)
+
 	// test - 0 transaction in month
 	// delete transaction in month
 	transactionByMonth[time.Month(3)] = nil
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(transactionByMonth))
-
 	for i := time.Month(1); i <= time.Month(12); i++ {
 		month := i
-		go func() {
-			sum := card.Sum(transactionByMonth[month])
-			fmt.Println(sum)
-			wg.Done()
-		}()
+		transactionSliceByMonth[month - 1] = transactionByMonth[month]
 	}
-	wg.Wait()
+
+	card.SumConcurrently(transactionSliceByMonth, 12)
+	fmt.Println()
 
 }
