@@ -67,11 +67,11 @@ func SumConcurrently(transactions [][]*TransactionTest, goroutines int) int64 {
 		goroutines = len(transactions)
 	}
 	wg := sync.WaitGroup{}
-	wg.Add(goroutines)
 
-	total := int64(0)
+	var total int64
 		for i := 0; i < goroutines; i++ {
 			part := transactions[i]
+			wg.Add(1)
 			go func() {
 				sum := Sum(part)
 				fmt.Println(sum)

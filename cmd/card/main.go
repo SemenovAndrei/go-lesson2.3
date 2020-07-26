@@ -56,7 +56,6 @@ func main() {
 	fmt.Println()
 
 	//	task 2
-	fmt.Println("task 2")
 	transaction := make([]*card.TransactionTest, 365)
 	var cnt int64 = 1
 	date := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -80,11 +79,9 @@ func main() {
 	transactionByMonth[time.Month(3)] = nil
 
 	for i := time.Month(1); i <= time.Month(12); i++ {
-		month := i
-		transactionSliceByMonth[month - 1] = transactionByMonth[month]
+		transactionSliceByMonth[i - 1] = transactionByMonth[i]
 	}
 
 	card.SumConcurrently(transactionSliceByMonth, 12)
-	fmt.Println()
 
 }
