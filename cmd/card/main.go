@@ -56,32 +56,28 @@ func main() {
 	fmt.Println()
 
 	//	task 2
-	transaction := make([]*card.TransactionTest, 365)
-	var cnt int64 = 1
-	date := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+	transaction := make([]*card.TransactionTest, 1100)
+	cnt := 1
+	date := time.Now()
 
 	for i := range transaction {
-		transaction[i] = &card.TransactionTest{Id: strconv.FormatInt(cnt, 10), Amount: 2,
-			Date: date.AddDate(0, 0, int(cnt))}
+		transaction[i] = &card.TransactionTest{Id: strconv.FormatInt(int64(cnt), 10), Amount: 10,
+			Date: date.AddDate(0, 0, -cnt)}
 		cnt++
 	}
 
-	transactionByMonth := make(map[time.Month][]*card.TransactionTest)
+	transactionMap := make(map[int]map[time.Month][]*card.TransactionTest)
 
 	for i := range transaction {
-		transactionByMonth[transaction[i].Date.Month()] = append(transactionByMonth[transaction[i].Date.Month()], transaction[i])
+		year := transaction[i].Date.Year()
+		month := transaction[i].Date.Month()
+
+		if transactionMap[year] == nil {
+			transactionMap[year] = map[time.Month][]*card.TransactionTest{}
+		}
+
+		transactionMap[year][month] = append(transactionMap[year][month], transaction[i])
 	}
 
-	transactionSliceByMonth := make([][]*card.TransactionTest, 12, 12)
-
-	// test - 0 transaction in month
-	// delete transaction in month
-	transactionByMonth[time.Month(3)] = nil
-
-	for i := time.Month(1); i <= time.Month(12); i++ {
-		transactionSliceByMonth[i - 1] = transactionByMonth[i]
-	}
-
-	card.SumConcurrently(transactionSliceByMonth, 12)
-
+	_ = card.PrintMonthlyTransaction(transactionMap)
 }

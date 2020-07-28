@@ -1,6 +1,7 @@
 package card
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -28,18 +29,6 @@ func AddTransaction(card *Card, transaction *Transaction) {
 	card.Transactions = append(card.Transactions, transaction)
 }
 
-//func SumByMCC(transactions []*Transaction, mcc []string) int64 {
-//	total := int64(0)
-//	for _, transaction := range transactions {
-//		for _, example := range mcc {
-//			if example == transaction.Mcc {
-//				total += transaction.Amount
-//			}
-//		}
-//	}
-//	return total
-//}
-
 func SortTransaction(transaction []*Transaction) []*Transaction {
 	sort.SliceStable(transaction, func(i, j int) bool {
 		return transaction[i].Amount > transaction[j].Amount
@@ -54,31 +43,60 @@ type TransactionTest struct {
 	Date   time.Time
 }
 
-func Sum(transactions []*TransactionTest) int64 {
-	total := int64(0)
-	for _, transaction := range transactions {
-		total += transaction.Amount
+func PrintMonthlyTransaction(transactions map[int]map[time.Month][]*TransactionTest) error {
+	if len(transactions) == 0 {
+		fmt.Println(errors.New("транзакций не было"))
+		return errors.New("транзакций не было")
 	}
-	return total
+
+	for i := range transactions {
+		fmt.Println()
+		fmt.Println("год   :", i)
+		for j := range transactions[i] {
+			fmt.Println("месяц :", j)
+			SumConcurrently(transactions[i][j], 10)
+
+
+		}
+	}
+	return nil
 }
 
-func SumConcurrently(transactions [][]*TransactionTest, goroutines int) int64 {
+func SumConcurrently(transactions []*TransactionTest, goroutines int) int64 {
 	if goroutines > len(transactions) {
 		goroutines = len(transactions)
 	}
+
+
 	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 
-	var total int64
-		for i := 0; i < goroutines; i++ {
-			part := transactions[i]
-			wg.Add(1)
-			go func() {
-				sum := Sum(part)
-				fmt.Println(sum)
-				wg.Done()
-			}()
-		}
-
+	total := int64(0)
+	partSize := len(transactions) / goroutines
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		part := transactions[i*partSize : (i+1)*partSize]
+		go func() {
+			mu.Lock()
+			sum := sum(part)
+			total += sum
+			mu.Unlock()
+			wg.Done()
+		}()
+	}
 	wg.Wait()
+	partLast := len(transactions) % goroutines
+	if  partLast != 0 {
+		total += sum(transactions[len(transactions) - partLast :])
+	}
+	fmt.Println("сумма :", total)
 	return total
+}
+
+func sum(transactions []*TransactionTest) int64 {
+	result := int64(0)
+	for i := 0; i < len(transactions); i++ {
+		result += transactions[i].Amount
+	}
+	return result
 }
