@@ -54,9 +54,7 @@ func PrintMonthlyTransaction(transactions map[int]map[time.Month][]*TransactionT
 		fmt.Println("год   :", i)
 		for j := range transactions[i] {
 			fmt.Println("месяц :", j)
-			SumConcurrently(transactions[i][j], 10)
-
-
+			SumConcurrently(transactions[i][j], 5)
 		}
 	}
 	return nil
@@ -66,7 +64,6 @@ func SumConcurrently(transactions []*TransactionTest, goroutines int) int64 {
 	if goroutines > len(transactions) {
 		goroutines = len(transactions)
 	}
-
 
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
@@ -86,8 +83,8 @@ func SumConcurrently(transactions []*TransactionTest, goroutines int) int64 {
 	}
 	wg.Wait()
 	partLast := len(transactions) % goroutines
-	if  partLast != 0 {
-		total += sum(transactions[len(transactions) - partLast :])
+	if partLast != 0 {
+		total += sum(transactions[len(transactions)-partLast:])
 	}
 	fmt.Println("сумма :", total)
 	return total
